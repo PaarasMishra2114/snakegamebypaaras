@@ -1,6 +1,9 @@
 // Curvy Snake (canvas) — clean single-file implementation
 const GRID = 18;
 
+// Backend API configuration
+const API_BASE = window.location.origin;
+
 // DOM & audio
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -10,6 +13,46 @@ const foodSound = new Audio('music/paaras-track-1.mp3');
 const gameOverSound = new Audio('music/paaras-track-2.mp3');
 const moveSound = new Audio('music/paaras-track-3.mp3');
 const musicSound = new Audio('music/paaras-track-4.mp3');
+
+// Backend API functions
+async function submitScore(playerName, score) {
+    try {
+        const response = await fetch(`${API_BASE}/api/scores`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ player_name: playerName, score: score })
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error submitting score:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function getTopScores(limit = 10) {
+    try {
+        const response = await fetch(`${API_BASE}/api/scores?limit=${limit}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching scores:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function getPlayerHighScore(playerName) {
+    try {
+        const response = await fetch(`${API_BASE}/api/scores/player/${encodeURIComponent(playerName)}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching player score:', error);
+        return { success: false, error: error.message };
+    }
+}
 
 // Game state
 let inputDir = {x:0,y:0};
@@ -101,6 +144,17 @@ function logicalStep(){
         try{ gameOverSound.play(); }catch(e){}
         try{ musicSound.pause(); }catch(e){}
         inputDir = {x:0,y:0};
+        
+        // Submit score to backend if score > 0
+        if(score > 0) {
+            const playerName = localStorage.getItem('playerName') || 'Player';
+            submitScore(playerName, score).then(result => {
+                if(result.success) {
+                    console.log('Score submitted successfully');
+                }
+            });
+        }
+        
         alert('Game Over. Press any key to play again!');
         snakeArr = [{x:13,y:15}];
         prevSnakeArr = JSON.parse(JSON.stringify(snakeArr));
@@ -280,3 +334,60 @@ canvas.addEventListener('touchend', e => {
     inputDir = newDir;
     try{ moveSound.play(); }catch(e){}
 }, {passive: false});
+
+// Leaderboard UI management
+function displayLeaderboard(scores) {
+    const leaderboardList = document.getElementById('leaderboardList');
+    if (!scores || scores.length === 0) {
+        leaderboardList.innerHTML = '<div style="text-align:center;color:#7bd7b0;padding:20px;">No scores yet. Be the first!</div>';
+        return;
+    }
+    
+    let html = '';
+    scores.forEach((item, index) => {
+        const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+        html += `
+            <div class="leaderboard-item">
+                <span class="rank">${rankEmoji} #${index + 1}</span>
+                <span class="name">${escapeHtml(item.player_name)}</span>
+                <span class="score">${item.score}</span>
+            </div>
+        `;
+    });
+    leaderboardList.innerHTML = html;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+async function loadLeaderboard() {
+    const result = await getTopScores(10);
+    if (result.success) {
+        displayLeaderboard(result.scores);
+    } else {
+        document.getElementById('leaderboardList').innerHTML = '<div style="text-align:center;color:#ff4b4b;padding:20px;">Failed to load leaderboard</div>';
+    }
+}
+
+// Player name management
+const playerNameInput = document.getElementById('playerName');
+const savedName = localStorage.getItem('playerName');
+if (savedName) {
+    playerNameInput.value = savedName;
+}
+
+playerNameInput.addEventListener('change', () => {
+    const name = playerNameInput.value.trim();
+    if (name) {
+        localStorage.setItem('playerName', name);
+    }
+});
+
+// Refresh button
+document.getElementById('refreshLeaderboard').addEventListener('click', loadLeaderboard);
+
+// Load leaderboard on page load
+loadLeaderboard();

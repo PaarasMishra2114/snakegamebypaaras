@@ -18,6 +18,18 @@
             <div id="hiscoreBox">HiScore: 0</div>
             <canvas id="gameCanvas" role="application" aria-label="Snake game canvas"></canvas>
         </div>
+
+        <div class="leaderboard-section">
+            <div class="player-info">
+                <label for="playerName">Player Name:</label>
+                <input type="text" id="playerName" placeholder="Enter your name" maxlength="50">
+            </div>
+            <div class="leaderboard-container">
+                <h2>Leaderboard</h2>
+                <div id="leaderboardList">Loading...</div>
+                <button id="refreshLeaderboard">Refresh</button>
+            </div>
+        </div>
     </div>
 
     <script src="paaras.js"></script>

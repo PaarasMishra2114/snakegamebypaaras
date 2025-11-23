@@ -9,26 +9,62 @@ Features
 - Continuous movement with grid-based logic (separation of logic & render)
 - Keyboard controls (arrow keys) and touch swipe controls for mobile
 - Persistent HiScore via `localStorage`
+- **Backend server with leaderboard functionality**
+- **RESTful API for score management**
+- **SQLite database for persistent score storage**
 
 Files
-- `index.html` — page entry and canvas placeholder
-- `css/style.css` — styles for the page and responsive score display
-- `js/index.js` — game logic + canvas renderer (curvy snake, eyes, blink, touch controls)
-- `img/fruit.svg` — fruit sprite
-- `music/` — audio assets referenced by the game (optional)
+- `paaras-index.html` — page entry and canvas placeholder
+- `paaras-style.css` — styles for the page and responsive score display
+- `paaras.js` — game logic + canvas renderer (curvy snake, eyes, blink, touch controls)
+- `server.js` — Express backend server with API endpoints
+- `paaras-fruit.svg` — fruit sprite
+- `paaras-track-*.mp3` — audio assets referenced by the game (optional)
+
+## Backend API Endpoints
+- `GET /api/scores` - Get top scores (query param: `limit`)
+- `POST /api/scores` - Submit a new score (body: `{player_name, score}`)
+- `GET /api/scores/player/:name` - Get player's high score
+- `GET /api/health` - Health check endpoint
 
 How to run
-1. Open `index.html` directly in your browser (works for most browsers):
+
+## Backend Integration (Recommended)
+The game now includes a backend server with leaderboard functionality:
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Start the server:
+```bash
+npm start
+```
+
+3. Open your browser and navigate to:
+```
+http://localhost:3000
+```
+
+## Development Mode
+For development with auto-restart:
+```bash
+npm run dev
+```
+
+## Static Mode (Legacy)
+1. Open `paaras-index.html` directly in your browser (works for most browsers):
 
    - On Windows PowerShell:
 
 ```powershell
-Start-Process 'c:\Users\mishr\OneDrive\Desktop\snakegame\SnakeGame\index.html'
+Start-Process 'c:\Users\mishr\OneDrive\Desktop\snakegame\SnakeGame\paaras-index.html'
 ```
 
-2. Alternatively, serve the folder with a simple static server (recommended to avoid some browser restrictions):
+2. Alternatively, serve the folder with a simple static server:
 
-```powershell
+```bash
 # from the project root
 npx http-server -p 8080
 # then open http://localhost:8080
