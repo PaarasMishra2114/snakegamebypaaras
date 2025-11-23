@@ -38,6 +38,7 @@ const allowedFiles = [
 ];
 
 // Custom static file middleware with whitelist
+// This mitigates the risk of exposing private files by blocking access to any file not in the whitelist
 app.use((req, res, next) => {
   // Skip this check for API routes
   if (req.path.startsWith('/api/')) {
@@ -47,6 +48,7 @@ app.use((req, res, next) => {
   const filename = path.basename(req.path);
   
   // Block dotfiles and non-whitelisted files
+  // This prevents access to server.js, package.json, .env, and other sensitive files
   if (filename.startsWith('.') || (filename && !allowedFiles.includes(filename) && req.path !== '/')) {
     return res.status(404).send('Not Found');
   }
@@ -54,9 +56,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// Serve static files with additional security headers
 app.use(express.static(__dirname, {
   index: false,
-  dotfiles: 'deny'
+  dotfiles: 'deny',
+  setHeaders: (res) => {
+    // Prevent directory listing and set security headers
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+  }
 }));
 
 // Initialize SQLite database
@@ -170,7 +177,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve the game
-app.get('/', (req, res) => {
+app.get('/', apiLimiter, (req, res) => {
   res.sendFile(path.join(__dirname, 'paaras-index.html'));
 });
 
