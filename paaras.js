@@ -9,10 +9,10 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreBox = document.getElementById('scoreBox');
 const hiscoreBox = document.getElementById('hiscoreBox');
-const foodSound = new Audio('music/paaras-track-1.mp3');
-const gameOverSound = new Audio('music/paaras-track-2.mp3');
-const moveSound = new Audio('music/paaras-track-3.mp3');
-const musicSound = new Audio('music/paaras-track-4.mp3');
+const foodSound = new Audio('paaras-track-1.mp3');
+const gameOverSound = new Audio('paaras-track-2.mp3');
+const moveSound = new Audio('paaras-track-3.mp3');
+const musicSound = new Audio('paaras-track-4.mp3');
 
 // Backend API functions
 async function submitScore(playerName, score) {
@@ -70,7 +70,7 @@ let moveInterval = 1 / logicalSpeed;
 let moveProgress = 0;
 
 let fruitImg = new Image();
-fruitImg.src = 'img/paaras-fruit.svg';
+fruitImg.src = 'paaras-fruit.svg';
 
 // Fruit variants (colors) — used when drawing programmatic fruits
 const fruitColors = ['#ff4b4b','#ff8c42','#ffd24b','#7af29a','#a176ff','#4bdcff'];
@@ -147,12 +147,17 @@ function logicalStep(){
         
         // Submit score to backend if score > 0
         if(score > 0) {
-            const playerName = localStorage.getItem('playerName') || 'Player';
-            submitScore(playerName, score).then(result => {
-                if(result.success) {
-                    console.log('Score submitted successfully');
-                }
-            });
+            const playerName = localStorage.getItem('playerName');
+            // Only submit if player has set a valid name
+            if(playerName && playerName.trim().length > 0) {
+                submitScore(playerName, score).then(result => {
+                    if(result.success) {
+                        console.log('Score submitted successfully');
+                    }
+                });
+            } else {
+                console.log('Please set your player name to submit scores');
+            }
         }
         
         alert('Game Over. Press any key to play again!');
