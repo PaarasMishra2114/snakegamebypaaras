@@ -6,11 +6,12 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const DB_PATH = process.env.DB_PATH || 'snakegame.db';
 
 // Rate limiting configuration
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 200, // Limit each IP to 200 requests per windowMs (generous for legitimate use)
   message: { success: false, error: 'Too many requests, please try again later.' }
 });
 
@@ -67,7 +68,7 @@ app.use(express.static(__dirname, {
 }));
 
 // Initialize SQLite database
-const db = new Database('snakegame.db');
+const db = new Database(DB_PATH);
 
 // Create leaderboard table if it doesn't exist
 db.exec(`
